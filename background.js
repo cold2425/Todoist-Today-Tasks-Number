@@ -10,7 +10,7 @@ function getTasksNumber() {
     fetch('https://api.todoist.com/rest/v1/tasks/', {
             method: 'GET',
             headers: {
-                // https://developer.todoist.com/appconsole.html
+                // https://developer.todoist.com/appconsole.html [YourAppToken]
                 'Authorization': 'Bearer [YourAppToken]'
             }
         })
@@ -24,7 +24,7 @@ function getTasksNumber() {
             let tasksCounter = 0;
             for (let index = 0; index < data.length; index++) {
                 if (Object.hasOwn(data[index], 'due')) {
-                    if (data[index]['due']['date'] == todayDate) {
+                    if (data[index]['due']['date'] <= todayDate) {
                         tasksCounter++;
                     }
                 }
