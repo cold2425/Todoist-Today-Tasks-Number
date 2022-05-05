@@ -32,6 +32,9 @@ function getTasksNumber() {
                     }
                 }
                 chrome.action.setBadgeText({ text: "" + tasksCounter + "" });
+                if(tasksCounter < 1) {
+                    chrome.action.setBadgeBackgroundColor({color: "#01AE40"})
+                }
             })
             .catch((error) => {
                 console.error('Error:', error);
