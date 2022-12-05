@@ -1,7 +1,7 @@
 {
     "name": "Todoist Today Tasks Number",
     "description": "Chrome extension showing today todoist number of tasks.",
-    "version": "1.0",
+    "version": "1.1.0",
     "manifest_version": 3,
     "action": {},
     "icons": {

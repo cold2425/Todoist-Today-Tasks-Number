@@ -10,7 +10,7 @@ chrome.action.onClicked.addListener(() => {
 function getTasksNumber() {
     chrome.storage.sync.get({ tokenAccess: '' }, function(item) {
         var fetch_headers = 'Bearer ' + item.tokenAccess;
-        fetch('https://api.todoist.com/rest/v1/tasks/', {
+        fetch('https://api.todoist.com/rest/v2/tasks', {
                 method: 'GET',
                 headers: {
                     'Authorization': fetch_headers
@@ -26,8 +26,12 @@ function getTasksNumber() {
                 let tasksCounter = 0;
                 for (let index = 0; index < data.length; index++) {
                     if (Object.hasOwn(data[index], 'due')) {
-                        if (data[index]['due']['date'] <= todayDate) {
-                            tasksCounter++;
+                        if(data[index]['due'] != null) {
+                            if(data[index]['due']['date']) {
+                                if (data[index]['due']['date'] <= todayDate) {
+                                    tasksCounter++;
+                                }
+                            }
                         }
                     }
                 }
