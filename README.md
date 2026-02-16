@@ -7,6 +7,9 @@ Some time ago ToDoIst dropped the display of the number of remaining tasks to be
 This plugin displays the missing number of tasks.
 
 # Change Log
+**16.02.2026** - version: 1.1<br />
+Upgrade to the new version of the ToDoIst API v1 with new endpoint.
+
 **05.12.2022** - version: 1.1<br />
 Upgrade to the new version of the ToDoIst API v2.
 
