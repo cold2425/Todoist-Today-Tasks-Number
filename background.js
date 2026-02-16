@@ -9,39 +9,67 @@ chrome.action.onClicked.addListener(() => {
 
 function getTasksNumber() {
     chrome.storage.sync.get({ tokenAccess: '' }, function(item) {
-        var fetch_headers = 'Bearer ' + item.tokenAccess;
-        fetch('https://api.todoist.com/rest/v2/tasks', {
-                method: 'GET',
-                headers: {
-                    'Authorization': fetch_headers
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                let todayDate = new Date();
-                const dd = String(todayDate.getDate()).padStart(2, '0');
-                const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
-                const yyyy = todayDate.getFullYear();
-                todayDate = yyyy + '-' + mm + '-' + dd;
-                let tasksCounter = 0;
-                for (let index = 0; index < data.length; index++) {
-                    if (Object.hasOwn(data[index], 'due')) {
-                        if(data[index]['due'] != null) {
-                            if(data[index]['due']['date']) {
-                                if (data[index]['due']['date'] <= todayDate) {
-                                    tasksCounter++;
-                                }
-                            }
-                        }
-                    }
-                }
-                chrome.action.setBadgeText({ text: "" + tasksCounter + "" });
-                if(tasksCounter < 1) {
-                    chrome.action.setBadgeBackgroundColor({color: "#01AE40"})
-                }
+        const token = item.tokenAccess;
+        if (!token) {
+            return;
+        }
+        const headers = { 'Authorization': 'Bearer ' + token };
+        const todayStr = formatTodayDate();
+
+        fetchAllTasks('https://api.todoist.com/api/v1/tasks', headers, [])
+            .then(allTasks => {
+                const tasksCounter = countTasksDueTodayOrOverdue(allTasks, todayStr);
+                chrome.action.setBadgeText({ text: String(tasksCounter) });
+                chrome.action.setBadgeBackgroundColor({
+                    color: tasksCounter < 1 ? '#01AE40' : 'black'
+                });
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
     });
+}
+
+function formatTodayDate() {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return yyyy + '-' + mm + '-' + dd;
+}
+
+function fetchAllTasks(url, headers, accumulated, cursor) {
+    const params = new URLSearchParams({ limit: '200' });
+    if (cursor) {
+        params.set('cursor', cursor);
+    }
+    return fetch(url + '?' + params.toString(), { method: 'GET', headers })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('API error: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const results = data.results || [];
+            const all = accumulated.concat(results);
+            const nextCursor = data.next_cursor;
+            if (nextCursor) {
+                return fetchAllTasks(url, headers, all, nextCursor);
+            }
+            return all;
+        });
+}
+
+function countTasksDueTodayOrOverdue(tasks, todayStr) {
+    let count = 0;
+    for (let i = 0; i < tasks.length; i++) {
+        const due = tasks[i] && tasks[i].due;
+        if (!due || !due.date) continue;
+        const dateStr = String(due.date).slice(0, 10);
+        if (dateStr <= todayStr) {
+            count++;
+        }
+    }
+    return count;
 }
